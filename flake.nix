@@ -58,6 +58,7 @@
             mkShell {
               nativeBuildInputs = [
                 rustToolchain
+                jdk21_headless
               ];
             };
         }
