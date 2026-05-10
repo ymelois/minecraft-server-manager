@@ -12,6 +12,7 @@
 
   outputs =
     {
+      self,
       nixpkgs,
       fenix,
       ...
@@ -36,20 +37,24 @@
             }
           )
         );
+
+      mkRustToolchain =
+        pkgs:
+        pkgs.fenix.fromToolchainFile {
+          file = ./rust-toolchain.toml;
+          sha256 = "sha256-gh/xTkxKHL4eiRXzWv8KP7vfjSk61Iq48x47BEDFgfk=";
+        };
+
+      manifest = (lib.importTOML ./Cargo.toml).package;
     in
     {
       devShells = forAllSystems supportedSystems (
         pkgs:
         let
-          toolchainFile = pkgs.fenix.fromToolchainFile {
-            file = ./rust-toolchain.toml;
-            sha256 = "sha256-gh/xTkxKHL4eiRXzWv8KP7vfjSk61Iq48x47BEDFgfk=";
-          };
-
           rustToolchain = pkgs.fenix.combine [
             pkgs.rust-analyzer
             pkgs.fenix.latest.rustfmt
-            toolchainFile
+            (mkRustToolchain pkgs)
           ];
         in
         {
@@ -63,5 +68,31 @@
             };
         }
       );
+
+      packages = forAllSystems supportedSystems (
+        pkgs:
+        let
+          rustToolchain = mkRustToolchain pkgs;
+
+          rustPlatform = pkgs.makeRustPlatform {
+            cargo = rustToolchain;
+            rustc = rustToolchain;
+          };
+        in
+        {
+          default = rustPlatform.buildRustPackage {
+            pname = manifest.name;
+            version = manifest.version;
+            src = lib.cleanSource ./.;
+            cargoLock.lockFile = ./Cargo.lock;
+          };
+        }
+      );
+
+      overlays.default = final: prev: {
+        minecraft-server-manager = self.packages.${prev.stdenv.hostPlatform.system}.default;
+      };
+
+      nixosModules.default = import ./module.nix { inherit self; };
     };
 }
