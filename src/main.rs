@@ -77,6 +77,10 @@ where
     V: AsRef<[S]>,
     S: AsRef<OsStr>,
 {
+    _ = fs::remove_file(&socket_path).await;
+    let listener = UnixListener::bind(&socket_path)?;
+    fs::set_permissions(&socket_path, Permissions::from_mode(0o600)).await?;
+
     let (program, args) = command
         .as_ref()
         .split_first()
@@ -113,10 +117,6 @@ where
             _ = tx_err.send(line);
         }
     });
-
-    _ = fs::remove_file(&socket_path).await;
-    let listener = UnixListener::bind(&socket_path)?;
-    fs::set_permissions(&socket_path, Permissions::from_mode(0o600)).await?;
 
     let clients_stdin = stdin.clone();
     let clients_tx = tx.clone();
