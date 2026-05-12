@@ -62,5 +62,49 @@ in
         ReadWritePaths = [ "/srv/minecraft/%i" ];
       };
     };
+
+    systemd.services."minecraft-backup@" = {
+      description = "Minecraft backup (%i)";
+
+      serviceConfig = {
+        Type = "oneshot";
+        User = "minecraft";
+        Group = "minecraft";
+
+        # Mode 640, group minecraft
+        EnvironmentFile = "/etc/minecraft/backup.env";
+
+        ExecStartPre = [
+          "${cfg.package}/bin/minecraft-server-manager send --socket /run/minecraft/%i.sock save-all flush"
+          "${cfg.package}/bin/minecraft-server-manager send --socket /run/minecraft/%i.sock save-off"
+        ];
+
+        ExecStart = "${cfg.package}/bin/minecraft-server-manager backup --root %i create /srv/minecraft/%i";
+
+        ExecStopPost = "-${cfg.package}/bin/minecraft-server-manager send --socket /run/minecraft/%i.sock save-on";
+
+        Nice = 10;
+        IOSchedulingClass = "idle";
+
+        # Hardening
+        NoNewPrivileges = true;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        PrivateTmp = true;
+        PrivateDevices = true;
+        ReadOnlyPaths = [ "/srv/minecraft/%i" ];
+      };
+    };
+
+    systemd.timers."minecraft-backup@" = {
+      description = "Hourly Minecraft backup (%i)";
+
+      timerConfig = {
+        OnCalendar = "hourly";
+        Persistent = true;
+        RandomizedDelaySec = "5m";
+        Unit = "minecraft-backup@%i.service";
+      };
+    };
   };
 }
