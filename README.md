@@ -1,6 +1,6 @@
 # minecraft-server-manager
 
-Straightforward tool to manage your minecraft servers.
+Lightweight Minecraft server manager with Unix-socket console and S3 backups.
 
 ## Requirements
 

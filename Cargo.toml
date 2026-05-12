@@ -2,6 +2,9 @@
 name = "minecraft-server-manager"
 version = "0.1.0"
 edition = "2024"
+description = "Lightweight Minecraft server manager with Unix-socket console and S3 backups"
+repository = "https://github.com/ymelois/minecraft-server-manager"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0.102"

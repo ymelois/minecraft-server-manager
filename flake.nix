@@ -85,6 +85,17 @@
             version = manifest.version;
             src = lib.cleanSource ./.;
             cargoLock.lockFile = ./Cargo.lock;
+
+            meta = {
+              description = manifest.description;
+              homepage = manifest.repository;
+              license = with lib.licenses; [
+                mit
+                asl20
+              ];
+              mainProgram = manifest.name;
+              platform = lib.platforms.linux;
+            };
           };
         }
       );
