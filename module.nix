@@ -70,10 +70,7 @@ in
         # Mode 640, group minecraft
         EnvironmentFile = "/etc/minecraft/backup.env";
 
-        ExecStartPre = [
-          "${lib.getExe cfg.package} send --socket /run/minecraft/%i.sock save-all flush"
-          "${lib.getExe cfg.package} send --socket /run/minecraft/%i.sock save-off"
-        ];
+        ExecStartPre = "${lib.getExe cfg.package} send --socket /run/minecraft/%i.sock save-off";
 
         ExecStart = "${lib.getExe cfg.package} backup --root %i create /srv/minecraft/%i";
 
